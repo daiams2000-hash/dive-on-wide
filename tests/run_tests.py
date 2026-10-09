@@ -206,7 +206,9 @@ class Server:
                 if len(self.ausgabe) > 5000:
                     del self.ausgabe[:1000]
         threading.Thread(target=abholen, daemon=True).start()
-        deadline = time.time() + 25
+        # 90 s: Auf einem frisch gestarteten Windows-Runner prüft der Virenscanner beim ersten Import jede Datei —
+        # 25 s reichten dort einmal nicht (GitHub-CI 09.10.2026), lokal startet der Server in 1–2 s.
+        deadline = time.time() + 90
         while time.time() < deadline:
             try:
                 st, _ = get("/api/health", timeout=3)
@@ -222,7 +224,7 @@ class Server:
                 time.sleep(0.2)
                 raise RuntimeError("Server beendet:\n" + "".join(self.ausgabe))
             time.sleep(0.25)
-        raise RuntimeError("Server startete nicht rechtzeitig")
+        raise RuntimeError("Server startete nicht rechtzeitig. Bisherige Ausgabe:\n" + "".join(self.ausgabe[-40:]))
 
     def stop(self, back_to=PORT):
         use_port(back_to)
