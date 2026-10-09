@@ -5065,6 +5065,11 @@ _werkbank_aktiv = {}          # Projektordner -> run_id, solange ein Lauf dort a
 _werkbank_start = {}          # run_id -> (Projektordner, Checkpunkt vor dem Lauf) — für den Live-Diff
 _werkbank_lock = threading.Lock()
 
+# Wie man bubblewrap unter Ubuntu 24.04 freischaltet — in der GitHub-CI auf Ubuntu 24.04 nachgeprüft.
+BWRAP_FREISCHALTEN = ("sudo cp /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/ && "
+                      "sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict")
+
+
 def werkbank_ohne_sandbox_hinweis(system=None):
     """Was fehlt und was hilft — für DIESES System, nicht für ein anderes."""
     system = system or platform.system()
@@ -5073,6 +5078,10 @@ def werkbank_ohne_sandbox_hinweis(system=None):
                 "jeden Befehl einzeln freigeben. Mehr Schutz: Dive on Wide in WSL2 betreiben "
                 "(docs/VM_BETRIEB.md).")
     if system == "Linux":
+        if shutil.which("bwrap"):
+            return ("bubblewrap ist installiert, darf aber keine Namensräume anlegen (Ubuntu ab 24.04 sperrt das per "
+                    "AppArmor). Freischalten: " + BWRAP_FREISCHALTEN + " Bis dahin musst du jeden Befehl des "
+                    "Agenten einzeln freigeben.")
         return ("Auf diesem Rechner gibt es keine Sandbox (Paket „bubblewrap“ installieren, z. B. "
                 "sudo apt install bubblewrap). Bis dahin musst du jeden Befehl des Agenten einzeln freigeben.")
     return ("Auf diesem Rechner gibt es keine Sandbox. Deshalb musst du jeden Befehl des Agenten "

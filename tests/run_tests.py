@@ -772,6 +772,35 @@ def t_stdlib_ohne_310():
             sys.stdlib_module_names = gespeichert
 
 
+@test("sandbox", "Ein gesperrtes bubblewrap gilt nicht als Sandbox — und der Hinweis sagt, wie man es freischaltet")
+def t_bwrap_gesperrt():
+    """GitHub-CI Ubuntu 24.04, 09.10.2026: bwrap installiert, AppArmor sperrt die Namensräume („setting up uid map:
+    Permission denied“). Weil nur geprüft wurde, OB bwrap da ist, wäre jeder Werkbank-Befehl gescheitert."""
+    nur_posix("die bwrap-Attrappe ist ein Shell-Skript")
+    sys.path.insert(0, ROOT)
+    import werkbank as W
+    srv = _server_modul()
+    d = tempfile.mkdtemp(prefix="dowos-bwrap-")
+    pfad_vorher = os.environ.get("PATH", "")
+    os.environ["PATH"] = d + os.pathsep + pfad_vorher
+    try:
+        for code, erwartet in ((1, False), (0, True)):
+            with open(os.path.join(d, "bwrap"), "w") as f:
+                f.write("#!/bin/sh\necho 'bwrap: setting up uid map: Permission denied' >&2\nexit %d\n" % code)
+            os.chmod(os.path.join(d, "bwrap"), 0o755)
+            W._BWRAP_PROBE.clear()
+            eq(W.bwrap_laeuft(), erwartet, "bwrap mit Rückgabe %d" % code)
+        with open(os.path.join(d, "bwrap"), "w") as f:
+            f.write("#!/bin/sh\nexit 1\n")
+        W._BWRAP_PROBE.clear()
+        hinweis = srv.werkbank_ohne_sandbox_hinweis("Linux")
+        contains(hinweis, "AppArmor", "Der Hinweis erklärt das gesperrte bubblewrap nicht")
+        contains(hinweis, "bwrap-userns-restrict", "Der Hinweis nennt keinen Weg zum Freischalten")
+    finally:
+        os.environ["PATH"] = pfad_vorher
+        W._BWRAP_PROBE.clear()
+
+
 @test("sandbox", "Unter Windows zählt der WSL-Platzhalter nicht als bash")
 def t_bash_ohne_wsl_platzhalter():
     srv = _server_modul()
@@ -12911,7 +12940,12 @@ class H(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         self.rfile.read(int(self.headers.get("Content-Length") or 0))
         self.antwort({"choices": [{"message": {"content": "gguf-antwort"}, "finish_reason": "stop"}]})
-http.server.HTTPServer(("127.0.0.1", int(a[a.index("--port") + 1])), H).serve_forever()
+class S(http.server.HTTPServer):
+    def server_bind(self):   # ohne socket.getfqdn(): hängt auf GitHubs macOS-Runnern (CI 09.10.2026)
+        import socketserver
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = "127.0.0.1", self.server_address[1]
+S(("127.0.0.1", int(a[a.index("--port") + 1])), H).serve_forever()
 """
 
 
@@ -13861,7 +13895,12 @@ if "server" in sys.argv:       # mlx_lm server: schreibt jede Anfrage neben das 
                 self.wfile.write(b'data: {"choices": [{"delta": {"content": "Schuelerantwort"}}]}\\n\\ndata: [DONE]\\n\\n')
             else:
                 self._json({"choices": [{"message": {"content": "Schuelerantwort"}}]})
-    HTTPServer(("127.0.0.1", int(sys.argv[sys.argv.index("--port") + 1])), H).serve_forever()
+    class S(HTTPServer):
+        def server_bind(self):   # ohne socket.getfqdn(): hängt auf GitHubs macOS-Runnern (CI 09.10.2026)
+            import socketserver
+            socketserver.TCPServer.server_bind(self)
+            self.server_name, self.server_port = "127.0.0.1", self.server_address[1]
+    S(("127.0.0.1", int(sys.argv[sys.argv.index("--port") + 1])), H).serve_forever()
 cfg = json.load(open(sys.argv[sys.argv.index("-c") + 1]))
 art = os.environ.get("FAKE_TRAINER", "")
 if art == "haengen":

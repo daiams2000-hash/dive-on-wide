@@ -26,9 +26,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python != '3.9'
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
-          # Ubuntu 24.04 limits user namespaces through AppArmor; the package's profile allows bwrap.
-          sudo systemctl reload apparmor || true
-          bwrap --ro-bind / / --dev /dev --proc /proc true && echo "bwrap works"
+          # Ubuntu 24.04 limits user namespaces through AppArmor. This is the same unlock the app
+          # tells its users (server.py BWRAP_FREISCHALTEN) — if it stops working, this step fails.
+          ls /usr/share/apparmor/extra-profiles/ | grep -i bwrap || true
+          sudo cp /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/ && \
+            sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
+          bwrap --ro-bind / / --dev /dev --proc /proc --unshare-net --die-with-parent true && echo "bwrap works"
       - name: Run the suite
         run: python3 tests/run_tests.py
       - name: Prove the package carries no secrets
