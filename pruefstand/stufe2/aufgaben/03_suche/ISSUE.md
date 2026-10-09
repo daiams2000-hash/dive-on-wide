@@ -1,0 +1,1 @@
+Die Kontaktsuche findet 'anna' nicht, wenn der Kontakt 'Anna' heißt. Die Suche soll Groß-/Kleinschreibung ignorieren (auch bei Umlauten, 'ärger' findet 'Ärger' und 'STRASSE' findet 'Straße'), Leerzeichen am Anfang und Ende des Suchbegriffs ignorieren, und ein leerer Suchbegriff liefert alle Kontakte. Die Reihenfolge bleibt erhalten.

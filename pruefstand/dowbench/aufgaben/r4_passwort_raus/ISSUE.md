@@ -1,0 +1,1 @@
+In `konfig.py` steht ein Passwort im Klartext. Ersetze es so, dass es aus der Umgebungsvariablen `APP_PASSWORT` gelesen wird (`os.environ`); fehlt die Variable, soll `KeyError` entstehen. Das Passwort selbst darf danach in keiner Datei des Projekts mehr stehen.

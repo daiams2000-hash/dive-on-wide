@@ -1,0 +1,32 @@
+{
+ "stand": "2026-10-05",
+ "hinweis": "Messfragen für den Lotsen — nie Trainingsdaten. 'muss': jede Gruppe braucht mindestens einen Treffer (Groß/klein egal). 'rechnung': die Frage nennt einen anderen Rechner; Modelle, die dort laut hardware.empfehlungen() nicht passen, dürfen nicht empfohlen werden. 'ehrlich': die Doku beantwortet das nicht — die Antwort muss das sagen.",
+ "fragen": [
+  {"frage": "Wie deinstalliere ich Dive on Wide?", "muss": [["--entfernen"]]},
+  {"frage": "How do I uninstall Dive on Wide?", "muss": [["--entfernen"]]},
+  {"frage": "Welche Programme bleiben beim Deinstallieren auf dem Rechner?", "muss": [["Ollama"]]},
+  {"frage": "Wie richte ich den Discord-Server-Chat ein?", "muss": [["Message Content"], ["Einladungslink", "Einladung", "invite"]]},
+  {"frage": "How do I set up the Discord server chat?", "muss": [["Message Content"], ["invite"]]},
+  {"frage": "Kann jeder auf meinem Discord-Server die Werkbank benutzen?", "muss": [["privat", "private"], ["Nutzer-ID", "IDs", "eingetragen"]]},
+  {"frage": "Was passiert, wenn mein Rechner aus ist und jemand im Discord eine Frage stellt?", "muss": [["offline"]]},
+  {"frage": "Wie arbeite ich mit der Werkbank eine Roadmap ab?", "muss": [["Roadmap abarbeiten"], ["Test"]]},
+  {"frage": "Was macht die Roadmap, wenn die Tests rot bleiben?", "muss": [["hält an", "anhalten", "hält die Roadmap", "Halt", "stoppt", "stopp"]]},
+  {"frage": "Wie lege ich fest, welcher Testbefehl für die Roadmap gilt?", "muss": [["DOWOS.md"], ["Tests:"]]},
+  {"frage": "Welches Modell passt auf einen PC mit 16 GB RAM ohne Grafikkarte?", "rechnung": true},
+  {"frage": "Welches Modell passt auf einen Mac mit 8 GB?", "rechnung": true},
+  {"frage": "Welches Modell passt auf einen Mac mit 32 GB?", "rechnung": true},
+  {"frage": "Ich habe eine Nvidia-Grafikkarte mit 12 GB VRAM. Welches Modell nehme ich?", "rechnung": true},
+  {"frage": "Which model fits a PC with 8 GB RAM and no graphics card?", "rechnung": true},
+  {"frage": "Welches Modell soll ich für die Werkbank auf meinem Rechner nehmen?", "muss": [["Qwen 3.6", "qwen3.6"]]},
+  {"frage": "Was ist eine GGUF-Datei als Modell und wann brauche ich das?", "muss": [["llama-server"], ["Leerlauf", "5 Minuten", "idle"]]},
+  {"frage": "Wie gut ist Qwen3.8 27B im Vergleich zu Qwen 3.6 35B?", "muss": [["41"], ["langsamer", "slower", "schneller"]]},
+  {"frage": "Warum fragt die Werkbank unter Windows vor jedem Befehl?", "muss": [["Sandbox"]]},
+  {"frage": "Wie mache ich die Websuche zuverlässig?", "muss": [["SearXNG", "Suchdienst", "Schlüssel", "API"]]},
+  {"frage": "Was ist das Mesh?", "muss": [["Gerät", "devices"], ["Speicher", "memory"]]},
+  {"frage": "Kann Dive on Wide meine Maus und Tastatur steuern?", "muss": [["Computer-Use", "Computer Use", "Steuerung"], ["Freigabe", "freigeben", "bestätig", "approv"]]},
+  {"frage": "Wo sehe ich, was Dive on Wide ins Internet schickt?", "muss": [["Ausgang", "outbound"]]},
+  {"frage": "Welche Version von Dive on Wide läuft hier?", "muss": [["VERSION"]]},
+  {"frage": "Kann Dive on Wide Videos schneiden?", "ehrlich": true},
+  {"frage": "Wie viel kostet Dive on Wide Pro im Monat?", "ehrlich": true, "darf_nicht": ["€", "Euro", "$"]}
+ ]
+}

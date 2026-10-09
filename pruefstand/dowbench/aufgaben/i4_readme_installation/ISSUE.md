@@ -1,0 +1,1 @@
+Ergänze in `text.py` eine Funktion `slug(titel)`: Kleinbuchstaben, Umlaute als ae/oe/ue/ss, alles andere als Bindestrich, keine doppelten oder randständigen Bindestriche. Beispiel: `slug('Größe & Maß!')` → `groesse-mass`.

@@ -1,0 +1,31 @@
+# Vorlage: Fachwissen als Frage und Antwort
+# Achtung, ehrlich: Feintuning ist ein schlechter Weg, Fakten einzuspeichern —
+# das Modell lernt die Form, nicht die Wahrheit. Für Fakten ist Nachschlagen
+# (Gedächtnis, Dateien, Werkzeuge) fast immer besser. Diese Vorlage ist für den
+# Fall, dass Formulierung und Zuschnitt der Antworten gelernt werden sollen.
+name: Fachwissen
+basis: qwen3-4b-2507-mlx-4bit
+aufgabe: sft
+
+daten:
+  quelle: ./daten/fragen_antworten.jsonl
+  format: frage_antwort
+  val_anteil: 0.1
+  max_laenge: auto
+
+training:
+  epochen: 2
+  lr: auto
+  batch: auto
+  grad_accum: auto
+  lora:
+    rang: auto
+    schichten: auto
+  geduld: 3
+  seed: 17
+
+pruefen:
+  datenwert_seeds: 3
+
+notiz: |
+  Prüfen, ob Nachschlagen nicht der bessere Weg ist.

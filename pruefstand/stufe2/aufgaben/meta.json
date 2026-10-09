@@ -1,0 +1,102 @@
+{
+ "01_paginierung": {
+  "stufe": "leicht",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "02_preise": {
+  "stufe": "leicht",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "03_suche": {
+  "stufe": "leicht",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "04_datum": {
+  "stufe": "leicht",
+  "art": "Fehler",
+  "fehler_sichtbar": false
+ },
+ "05_konfig": {
+  "stufe": "mittel",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "06_csv_import": {
+  "stufe": "mittel",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "07_cache": {
+  "stufe": "mittel",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "08_lager": {
+  "stufe": "mittel",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "09_flach": {
+  "stufe": "mittel",
+  "art": "Fehler",
+  "fehler_sichtbar": false
+ },
+ "10_cli_json": {
+  "stufe": "mittel",
+  "art": "Funktion",
+  "fehler_sichtbar": false
+ },
+ "11_slug": {
+  "stufe": "mittel",
+  "art": "Funktion",
+  "fehler_sichtbar": true
+ },
+ "12_wiederholung": {
+  "stufe": "mittel",
+  "art": "Funktion",
+  "fehler_sichtbar": false
+ },
+ "13_lru": {
+  "stufe": "mittel",
+  "art": "Funktion",
+  "fehler_sichtbar": true
+ },
+ "14_rechner": {
+  "stufe": "schwer",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "15_umbruch": {
+  "stufe": "schwer",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "16_abhaengigkeiten": {
+  "stufe": "schwer",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ },
+ "17_waehrung": {
+  "stufe": "mittel",
+  "art": "Umbau",
+  "fehler_sichtbar": true
+ },
+ "18_leistung": {
+  "stufe": "schwer",
+  "art": "Leistung",
+  "fehler_sichtbar": false
+ },
+ "19_roemisch": {
+  "stufe": "mittel",
+  "art": "Funktion",
+  "fehler_sichtbar": true
+ },
+ "20_konto": {
+  "stufe": "schwer",
+  "art": "Fehler",
+  "fehler_sichtbar": true
+ }
+}

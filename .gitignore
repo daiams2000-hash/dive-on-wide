@@ -1,0 +1,58 @@
+# --- Local data: NEVER commit ---------------------------------------------
+# storage/ holds the SQLite database with real chats, artifacts and workspaces.
+storage/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# --- Secrets ---------------------------------------------------------------
+# The real configuration may contain API keys and access tokens.
+# Ship .env.example instead; it is committed on purpose.
+.env
+.env.local
+.env.*
+!.env.example
+*.key
+*.pem
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# --- Tooling / analysis output ---------------------------------------------
+graphify-out/
+.claude/
+
+# --- OS / editors ----------------------------------------------------------
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Logs / temporary ------------------------------------------------------
+*.log
+tmp/
+temp/
+
+# Gebaute Menüleisten-App: Quelltext und Bauskript kommen ins Repo,
+# das übersetzte Bündel nicht — es ist maschinenspezifisch und signiert.
+menueleiste/*.app/
+
+# Gebaute Auslieferungspakete — entstehen aus werkzeuge/verteilen.sh
+Verteilen/
+
+# Ergebnisse des Prüfstands — groß, maschinen- und modellabhängig
+pruefstand/ergebnisse/

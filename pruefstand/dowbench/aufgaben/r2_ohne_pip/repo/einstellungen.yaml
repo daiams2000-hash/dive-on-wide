@@ -1,0 +1,6 @@
+# Server
+port: 8080
+name: dowbench
+# Grenzen
+max_nutzer: 25
+modus: test

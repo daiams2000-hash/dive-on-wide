@@ -1,0 +1,57 @@
+name: release
+
+# Ein Tag v* (vom Freigabeskript gesetzt und gepusht) wird zur Release-Seite auf GitHub,
+# mit den Notizen aus CHANGELOG.md, und — falls eingerichtet — als Beitrag in Discord #releases.
+# Vorab-Versionen (mit Bindestrich, z. B. v0.5.0-rc.1) werden als „Pre-release“ markiert.
+#
+# Discord: in #releases → Kanal bearbeiten → Integrationen → Webhooks → Neuer Webhook → URL
+# kopieren und hier als Repository-Secret DISCORD_WEBHOOK_RELEASES hinterlegen. Ohne Secret
+# wird nur die GitHub-Seite angelegt.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      # Auf Job-Ebene, denn „if:“ kann Secrets nicht direkt lesen
+      WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_RELEASES }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Release-Notizen aus CHANGELOG.md
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          python3 werkzeuge/release_notizen.py "$VERSION" --ziel notizen \
+            --link "${{ github.server_url }}/${{ github.repository }}/releases/tag/${GITHUB_REF_NAME}"
+      - name: GitHub-Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VORAB=""
+          case "$GITHUB_REF_NAME" in *-*) VORAB="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --title "Dive on Wide ${GITHUB_REF_NAME#v}" \
+            --notes-file notizen/github.md $VORAB --verify-tag
+      - name: In Discord #releases ankündigen
+        if: env.WEBHOOK != ''
+        run: |
+          python3 - <<'EOF'
+          import json, os, urllib.request
+          text = open("notizen/discord.txt", encoding="utf-8").read()
+          req = urllib.request.Request(os.environ["WEBHOOK"], method="POST",
+                                       data=json.dumps({"content": text, "allowed_mentions": {"parse": []}}).encode(),
+                                       headers={"Content-Type": "application/json", "User-Agent": "dowos-release"})
+          urllib.request.urlopen(req, timeout=30)
+          EOF
+      - name: X-Entwurf im Protokoll
+        run: |
+          echo "### X-Entwurf (von Hand posten)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat notizen/x.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  test:
+    # Dive on Wide has no dependencies, so there is nothing to install and no cache
+    # to warm. If this job ever needs a `pip install`, something went wrong.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run the suite
+        run: python3 tests/run_tests.py
+      - name: Prove the package carries no secrets
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: |
+          # A build that leaks the database or .env must fail the build, not
+          # be noticed later by whoever unpacks it.
+          test ! -f storage/dowos.db
+          ! git ls-files | grep -qE '(^|/)\.env$'

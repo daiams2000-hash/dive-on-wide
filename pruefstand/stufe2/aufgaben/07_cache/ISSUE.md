@@ -1,0 +1,1 @@
+Der Cache liefert frische Einträge nicht und alte schon: die Ablaufprüfung ist verdreht. Ein Eintrag, der genau `ttl` Sekunden alt ist, gilt als abgelaufen. Zusätzlich fehlt die Methode `anzahl()`, die die Zahl der noch gültigen Einträge liefert und abgelaufene dabei entfernt. Die Uhr ist injizierbar, damit man ohne Warten testen kann.

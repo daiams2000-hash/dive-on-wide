@@ -1,0 +1,30 @@
+{
+ "stand": "2026-10-07",
+ "quelle": "Groessen: Manifeste der Ollama-Registry (registry.ollama.ai) bzw. Hugging Face, am 07.10.2026 abgefragt. Reihenfolge je Rolle = Vorrang. „gemessen“ nur, wo auf dem Entwicklungsrechner (Mac, 24 GB) wirklich gemessen wurde.",
+ "modelle": [
+  {"tag": "qwen3.6:35b-a3b", "name": "Qwen 3.6 35B-A3B", "groesse_gb": 22.6, "rollen": ["werkbank", "allround", "bild"], "hinweis": "Mischung aus Experten: 35 B Wissen, nur 3 B rechnen je Wort — dadurch schnell. Sieht Bilder."},
+  {"tag": "hf.co/unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q3_K_XL", "name": "Qwen 3.6 35B-A3B (3 Bit)", "groesse_gb": 16.8, "rollen": ["werkbank", "allround"], "gemessen": "auf einem Mac mit 24 GB: DowBench 31/34, Werkbank-Prüfung 42/72 — das beste gemessene Modell", "hinweis": "Dasselbe Modell stärker verkleinert; passt so auf 24 GB."},
+  {"tag": "qwen3.8:27b", "name": "Qwen 3.8 27B", "groesse_gb": 17.7, "rollen": ["werkbank", "allround"], "gemessen": "auf einem Mac mit 24 GB (4 Bit, als GGUF-Datei): Werkbank-Prüfung 41/72 — gleichauf mit Qwen 3.6 35B-A3B (42/72), aber rund 4× langsamer", "hinweis": "Neueste Qwen-Reihe, dicht: gründlich, aber jedes Wort rechnet alle 27 B — deutlich langsamer als 35B-A3B."},
+  {"tag": "qwen3-coder:30b", "name": "Qwen3 Coder 30B-A3B", "groesse_gb": 18.6, "rollen": ["werkbank"], "hinweis": "Expertenmodell, auf Code und Agenten-Werkzeuge trainiert."},
+  {"tag": "glm-4.7-flash:latest", "name": "GLM 4.7 Flash", "groesse_gb": 19.0, "rollen": ["werkbank", "allround"], "hinweis": "Schnelles Expertenmodell von Z.ai, stark bei Werkzeugaufrufen."},
+  {"tag": "gemma4:31b", "name": "Gemma 4 31B", "groesse_gb": 20.4, "rollen": ["allround", "bild"], "hinweis": "Googles größtes Gemma 4, dicht, sieht Bilder."},
+  {"tag": "gemma4:26b", "name": "Gemma 4 26B", "groesse_gb": 18.7, "rollen": ["allround", "bild"], "hinweis": "Gemma 4 als Expertenmodell — schneller als die dichte 31B. Sieht Bilder."},
+  {"tag": "qwen3.6:27b", "name": "Qwen 3.6 27B", "groesse_gb": 17.8, "rollen": ["bild", "allround"], "hinweis": "Dicht und gründlich, sieht Bilder."},
+  {"tag": "devstral:24b", "name": "Devstral 24B", "groesse_gb": 14.3, "rollen": ["werkbank"], "hinweis": "Mistrals Modell für Coding-Agenten."},
+  {"tag": "gpt-oss:20b", "name": "gpt-oss 20B", "groesse_gb": 13.8, "rollen": ["werkbank", "allround"], "hinweis": "OpenAIs offenes Expertenmodell, denkt vor der Antwort."},
+  {"tag": "qwen3.5:9b", "name": "Qwen 3.5 9B", "groesse_gb": 6.6, "rollen": ["allround", "werkbank"]},
+  {"tag": "ministral-3:14b", "name": "Ministral 3 14B", "groesse_gb": 9.1, "rollen": ["allround"]},
+  {"tag": "gemma4:12b", "name": "Gemma 4 12B", "groesse_gb": 8.0, "rollen": ["allround", "bild"], "gemessen": "auf einem Mac mit 24 GB: DowBench 23/34, deutlich langsamer als Qwen 3.6", "hinweis": "Sieht Bilder."},
+  {"tag": "qwen3:14b", "name": "Qwen 3 14B", "groesse_gb": 9.3, "rollen": ["werkbank", "allround"]},
+  {"tag": "qwen2.5-coder:14b", "name": "Qwen 2.5 Coder 14B", "groesse_gb": 9.0, "rollen": ["werkbank"], "gemessen": "auf einem Mac mit 24 GB: Werkbank-Prüfung 17/72"},
+  {"tag": "qwen3.5:4b", "name": "Qwen 3.5 4B", "groesse_gb": 3.3, "rollen": ["klein", "allround", "werkbank"], "hinweis": "Der beste kleine Allrounder; läuft auch ohne Grafikkarte."},
+  {"tag": "gemma4:e4b", "name": "Gemma 4 E4B", "groesse_gb": 6.6, "rollen": ["allround", "bild", "klein"], "hinweis": "Für schwächere Rechner gebaut, sieht Bilder."},
+  {"tag": "ministral-3:8b", "name": "Ministral 3 8B", "groesse_gb": 6.0, "rollen": ["allround"]},
+  {"tag": "qwen3:8b", "name": "Qwen 3 8B", "groesse_gb": 5.2, "rollen": ["werkbank", "allround"]},
+  {"tag": "gemma4:e2b", "name": "Gemma 4 E2B", "groesse_gb": 4.6, "rollen": ["klein"], "hinweis": "Sehr klein, sieht Bilder — auf 8 GB ohne Grafikkarte aber schon knapp."},
+  {"tag": "qwen3:4b", "name": "Qwen 3 4B", "groesse_gb": 2.5, "rollen": ["klein", "allround", "werkbank"]},
+  {"tag": "qwen3.5:2b", "name": "Qwen 3.5 2B", "groesse_gb": 2.7, "rollen": ["klein"]},
+  {"tag": "granite4:3b", "name": "Granite 4 3B", "groesse_gb": 2.1, "rollen": ["klein"]},
+  {"tag": "qwen3.5:0.8b", "name": "Qwen 3.5 0.8B", "groesse_gb": 1.3, "rollen": ["klein"], "hinweis": "Winzig — für sehr alte Rechner oder als schneller Helfer."}
+ ]
+}

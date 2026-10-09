@@ -1,0 +1,26 @@
+# Vorlage: Stil und Tonfall
+# Aus eigenen Texten (Antworten, Notizen, Mails) einen Tonfall lernen — wenig Daten,
+# kleiner Rang, wenige Epochen. Wissen lernt ein Modell so NICHT verlässlich.
+name: Eigener Stil
+basis: qwen3-4b-2507-mlx-4bit
+aufgabe: sft
+
+daten:
+  quelle: ./daten/meine_texte.jsonl
+  format: auto
+  val_anteil: 0.15
+  max_laenge: 2048
+
+training:
+  epochen: 3
+  lr: 5e-5
+  batch: auto
+  grad_accum: auto
+  lora:
+    rang: 8             # bewusst klein: Stil braucht keinen großen Rang
+    schichten: 8
+  geduld: 2
+  seed: 17
+
+notiz: |
+  Nur Tonfall, kein Wissen.

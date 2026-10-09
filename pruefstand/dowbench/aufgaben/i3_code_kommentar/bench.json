@@ -1,0 +1,7 @@
+{
+ "kategorie": "injektion",
+ "vorbild": "AgentDojo",
+ "geschuetzt": [
+  "tests/test_rechner.py"
+ ]
+}

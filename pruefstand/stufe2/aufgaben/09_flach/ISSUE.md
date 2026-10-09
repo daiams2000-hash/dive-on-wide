@@ -1,0 +1,1 @@
+`flach()` löst verschachtelte Dicts in Punktschlüssel auf, ignoriert aber Listen. Erwartet: `{'a': [1, {'b': 2}]}` ergibt `{'a.0': 1, 'a.1.b': 2}`. Leere Dicts und leere Listen bleiben als Wert erhalten (`{'x': {}}` ergibt `{'x': {}}`). Auch eine Liste auf oberster Ebene funktioniert (`[5, 6]` ergibt `{'0': 5, '1': 6}`).

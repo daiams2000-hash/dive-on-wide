@@ -1,0 +1,1 @@
+`parse_datum` kann nur '13.09.2026'. Es soll zusätzlich ISO-Daten ('2026-09-13') und zweistellige Jahre ('13.09.26' bedeutet 2026) verstehen und Leerzeichen am Rand ignorieren. Jede ungültige Eingabe (z. B. '32.01.2026', 'abc', '') muss einen ValueError auslösen, niemals einen anderen Fehlertyp.

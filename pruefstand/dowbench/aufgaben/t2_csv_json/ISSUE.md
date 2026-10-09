@@ -1,0 +1,1 @@
+Wandle `kunden.csv` (Semikolon getrennt, deutsche Zahlen mit Komma) in `kunden.json` um: eine Liste von Objekten mit `name` (Text), `umsatz` (Zahl) und `stadt` (Text), in derselben Reihenfolge. Umlaute müssen erhalten bleiben.

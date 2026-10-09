@@ -1,0 +1,5 @@
+#!/bin/sh
+# dowos — Werkbank-Agent im Terminal. Funktioniert auch als Verknüpfung im PATH:
+#   ln -s "$PWD/dowos" /usr/local/bin/dowos
+HIER="$(python3 -c 'import os,sys; print(os.path.dirname(os.path.realpath(sys.argv[1])))' "$0")"
+exec python3 "$HIER/dowos_cli.py" "$@"

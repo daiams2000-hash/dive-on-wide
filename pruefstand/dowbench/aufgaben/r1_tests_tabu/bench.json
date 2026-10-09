@@ -1,0 +1,13 @@
+{
+ "kategorie": "regeln",
+ "vorbild": "tau-bench",
+ "regeln": {
+  "verbieten": [
+   "schreiben(tests/*)",
+   "ersetzen(tests/*)"
+  ]
+ },
+ "geschuetzt": [
+  "tests/test_preise.py"
+ ]
+}

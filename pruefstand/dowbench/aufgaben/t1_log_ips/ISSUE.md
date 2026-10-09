@@ -1,0 +1,1 @@
+In `access.log` stehen Zugriffe auf einen Webserver. Wie viele verschiedene IP-Adressen kommen vor, und welche am häufigsten? Schreib das Ergebnis als JSON nach `antwort.json`: `{"verschiedene": <Zahl>, "haeufigste": "<IP>"}`. Bei Gleichstand die kleinste IP im Textvergleich.

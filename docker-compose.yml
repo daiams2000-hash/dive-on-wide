@@ -1,0 +1,16 @@
+# Dive on Wide — optionales Docker-Setup (Alternative zu `python3 server.py`)
+# Start:  docker compose up
+# Ollama läuft dabei nativ auf dem Host; der Container greift via
+# host.docker.internal darauf zu (in .env: OLLAMA_BASE_URL=http://host.docker.internal:11434)
+services:
+  dow-os:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: python3 server.py
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

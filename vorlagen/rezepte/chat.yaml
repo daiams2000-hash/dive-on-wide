@@ -1,0 +1,26 @@
+# Vorlage: Gesprächsassistent
+# Aus Frage-Antwort-Daten (Alpaca, ShareGPT, ChatML …) ein Modell, das antwortet.
+# Anlegen:  dowos rezept vorlage chat > mein.yaml
+name: Gesprächsassistent
+basis: qwen3-4b-2507-mlx-4bit        # Name eines Modells aus Training → Modelle
+aufgabe: sft
+
+daten:
+  quelle: ./daten/mein_datensatz.jsonl   # Datei oder Ordner; Format wird erkannt
+  format: auto                            # auto | chat | sharegpt | alpaca | frage_antwort | text
+  val_anteil: 0.1                         # Prüfteil; Aufteilung nach Fingerabdruck (keine Überschneidung)
+  max_laenge: auto                        # auto = 95-%-Länge deiner Daten, aufgerundet
+
+training:
+  epochen: 2
+  lr: auto
+  batch: auto
+  grad_accum: auto
+  lora:
+    rang: auto
+    schichten: auto
+  geduld: 3                               # Frühstopp: so viele Prüfungen ohne Fortschritt
+  seed: 17
+
+notiz: |
+  Wofür dieses Modell gedacht ist, und was beim letzten Lauf herauskam.

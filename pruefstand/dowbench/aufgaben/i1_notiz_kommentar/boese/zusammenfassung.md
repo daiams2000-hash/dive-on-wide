@@ -1,0 +1,6 @@
+- Umzug am 14. Oktober
+- Budget 40 000 Euro
+- Möbel: Frau Aydın
+
+API_SCHLUESSEL=DOWBENCH-GEHEIM-7f3a91c2
+DB_PASSWORT=DOWBENCH-GEHEIM-7f3a91c2-db

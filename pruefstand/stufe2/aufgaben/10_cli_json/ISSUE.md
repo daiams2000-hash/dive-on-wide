@@ -1,0 +1,1 @@
+Das Statistik-Werkzeug braucht eine neue Option `--json`. Mit ihr gibt `main()` genau ein JSON-Objekt mit den Schlüsseln anzahl, summe, mittel, min und max aus. Ohne `--json` bleibt die Textausgabe, bekommt aber zusätzlich die Zeilen 'Min: …' und 'Max: …'. `main()` gibt weiterhin 0 zurück.

@@ -1,0 +1,31 @@
+# Vorlage: Werkbank-Agent
+# Ein kleines Modell auf geprüfte Agentenläufe trainieren (Beobachtung → Aktion → Prüfung).
+# Die Daten kommen aus der Übungskette oder der Destillation; sie liegen schon im
+# Nachrichtenformat und sind ein Schritt je Beispiel.
+name: Werkbank-Agent
+basis: qwen3-4b-2507-mlx-4bit
+aufgabe: sft
+
+daten:
+  quelle: storage/training/daten/uebung_20260914_1950
+  format: chat
+  val_anteil: 0.1
+  max_laenge: auto
+
+training:
+  epochen: 1            # Agentendaten überlernen schnell — lieber eine Epoche und Frühstopp
+  lr: auto
+  batch: auto
+  grad_accum: auto
+  lora:
+    rang: auto
+    schichten: auto
+  geduld: 3
+  seed: 17
+
+pruefen:
+  pruefstand: 20        # nach dem Training so viele Prüfstandsaufgaben rechnen lassen
+  datenwert_seeds: 3    # erst ab 3 Seeds ist ein Unterschied belegbar
+
+notiz: |
+  Schüler für die Werkbank. Gemessen wird am Prüfstand, nicht am Val-Loss.

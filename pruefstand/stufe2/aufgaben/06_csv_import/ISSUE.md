@@ -1,0 +1,1 @@
+Der Kundenimport verliert die letzte Zeile. Firmennamen mit Komma in Anführungszeichen (z. B. "Müller, Söhne GmbH") werden zerrissen. Dateien mit Windows-Zeilenenden liefern Werte mit angehängtem \r. Leere Zeilen sollen übersprungen werden. Bitte `lese_kunden` robust machen; es bekommt den Dateiinhalt als String.

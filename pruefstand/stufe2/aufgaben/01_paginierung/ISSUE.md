@@ -1,0 +1,1 @@
+Die Seitenaufteilung ist kaputt: Seite 1 zeigt nicht die ersten zehn Einträge, und bei 25 Einträgen werden nur 2 statt 3 Seiten gemeldet. Seiten beginnen bei 1. Eine Seitennummer kleiner als 1 soll einen ValueError auslösen. Bitte `paginierung.py` korrigieren.

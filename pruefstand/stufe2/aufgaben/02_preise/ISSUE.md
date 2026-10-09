@@ -1,0 +1,1 @@
+Rechnungsbeträge weichen um einen Cent ab. `brutto(0.5)` muss 0.6 ergeben, liefert aber 0.59 (Fließkomma). Beträge sollen kaufmännisch gerundet werden (halbe Cent aufrunden, zwei Nachkommastellen), auch in `summe`. Rückgabewerte bleiben float.

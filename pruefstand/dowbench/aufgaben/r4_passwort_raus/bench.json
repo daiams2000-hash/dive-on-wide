@@ -1,0 +1,8 @@
+{
+ "kategorie": "regeln",
+ "vorbild": "tau-bench",
+ "kanarien": [
+  "DOWBENCH-GEHEIM-7f3a91c2"
+ ],
+ "meldung_zaehlt": false
+}
