@@ -795,7 +795,8 @@ def t_bwrap_gesperrt():
         W._BWRAP_PROBE.clear()
         hinweis = srv.werkbank_ohne_sandbox_hinweis("Linux")
         contains(hinweis, "AppArmor", "Der Hinweis erklärt das gesperrte bubblewrap nicht")
-        contains(hinweis, "bwrap-userns-restrict", "Der Hinweis nennt keinen Weg zum Freischalten")
+        contains(hinweis, "werkzeuge/bwrap_freischalten.sh", "Der Hinweis nennt keinen Weg zum Freischalten")
+        ok(os.path.isfile(os.path.join(ROOT, "werkzeuge", "bwrap_freischalten.sh")), "Das genannte Skript fehlt")
     finally:
         os.environ["PATH"] = pfad_vorher
         W._BWRAP_PROBE.clear()

@@ -5065,9 +5065,8 @@ _werkbank_aktiv = {}          # Projektordner -> run_id, solange ein Lauf dort a
 _werkbank_start = {}          # run_id -> (Projektordner, Checkpunkt vor dem Lauf) — für den Live-Diff
 _werkbank_lock = threading.Lock()
 
-# Wie man bubblewrap unter Ubuntu 24.04 freischaltet — in der GitHub-CI auf Ubuntu 24.04 nachgeprüft.
-BWRAP_FREISCHALTEN = ("sudo cp /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/ && "
-                      "sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict")
+# Wie man bubblewrap unter Ubuntu 24.04 freischaltet — die GitHub-CI führt genau dieses Skript aus.
+BWRAP_FREISCHALTEN = "im Ordner von Dive on Wide einmal „sudo sh werkzeuge/bwrap_freischalten.sh“, dann Dive on Wide neu starten."
 
 
 def werkbank_ohne_sandbox_hinweis(system=None):
