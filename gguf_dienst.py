@@ -101,6 +101,7 @@ class Dienst:
         log = os.path.join(self.ordner, "gguf-%s.log" % prov["id"])
         proc = subprocess.Popen(self.befehl(prov, port), stdout=open(log, "w"), stderr=subprocess.STDOUT)
         ende = time.time() + self.frist
+        zuletzt = ""
         while time.time() < ende:
             if proc.poll() is not None:
                 raise RuntimeError("llama-server beendete sich beim Laden (Code %s). %s"
@@ -109,12 +110,13 @@ class Dienst:
                 with urllib.request.urlopen("http://127.0.0.1:%d/health" % port, timeout=3) as a:
                     if json.load(a).get("status") == "ok":
                         break
-            except Exception:
-                pass
+            except Exception as e:
+                zuletzt = "%s: %s" % (type(e).__name__, e)
             time.sleep(1)
         else:
             proc.terminate()
-            raise RuntimeError("llama-server kam in %d s nicht hoch. %s" % (self.frist, _letzte_zeilen(log)))
+            raise RuntimeError("llama-server kam in %d s nicht hoch. %s%s"
+                               % (self.frist, _letzte_zeilen(log), " Zuletzt: " + zuletzt if zuletzt else ""))
         self._laeufe[prov["id"]] = {"proc": proc, "port": port, "zuletzt": time.time(), "aktiv": 0, "pfad": pfad}
         with open(self._pid_datei(prov["id"]), "w") as f:
             f.write(str(proc.pid))

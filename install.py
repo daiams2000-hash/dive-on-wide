@@ -97,7 +97,7 @@ ENGLISCH = {
     '%s über den Paketmanager deiner Verteilung installieren (apt/dnf/pacman/zypper/apk).': "Install %s with your distribution's package manager (apt/dnf/pacman/zypper/apk).",
     'Befehle des Agenten ohne Netz und nur im Projekt': 'agent commands without network and only inside the project',
     'keine unter Windows — jeder Befehl wird einzeln freigegeben': 'none on Windows — every command is approved one by one',
-    'bubblewrap ist installiert, darf aber keine Namensräume anlegen. Unter Ubuntu bringt das Paket ein AppArmor-Profil mit (/etc/apparmor.d/bwrap-userns-restrict) — nach der Installation einmal „sudo systemctl reload apparmor“. Ohne Sandbox fragt die Werkbank vor jedem Befehl.': 'bubblewrap is installed but may not create namespaces. On Ubuntu the package brings an AppArmor profile (/etc/apparmor.d/bwrap-userns-restrict) — after installing, run “sudo systemctl reload apparmor” once. Without a sandbox the Workbench asks before every command.',
+    'bubblewrap ist installiert, darf aber keine Namensräume anlegen (Ubuntu ab 24.04 sperrt das per AppArmor). Freischalten: im Ordner von Dive on Wide einmal „sudo sh werkzeuge/bwrap_freischalten.sh“. Ohne Sandbox fragt die Werkbank vor jedem Befehl.': 'bubblewrap is installed but may not create namespaces (Ubuntu 24.04+ blocks this via AppArmor). To unlock: in the Dive on Wide folder run “sudo sh werkzeuge/bwrap_freischalten.sh” once. Without a sandbox the Workbench asks before every command.',
     'bubblewrap über den Paketmanager installieren (Paket „bubblewrap“).': 'Install bubblewrap with the package manager (package “bubblewrap”).',
     'llama.cpp mit RPC': 'llama.cpp with RPC',
     'ein Modell über mehrere Geräte rechnen lassen': 'let one model compute across several devices',
@@ -465,10 +465,9 @@ class SandboxBaustein(Baustein):
 
     def hinweis(self, lage):
         if lage.linux and shutil.which("bwrap"):
-            return (T("bubblewrap ist installiert, darf aber keine Namensräume anlegen. "
-                    "Unter Ubuntu bringt das Paket ein AppArmor-Profil mit "
-                    "(/etc/apparmor.d/bwrap-userns-restrict) — nach der Installation "
-                    "einmal „sudo systemctl reload apparmor“. Ohne Sandbox fragt die "
+            return (T("bubblewrap ist installiert, darf aber keine Namensräume anlegen (Ubuntu ab 24.04 "
+                    "sperrt das per AppArmor). Freischalten: im Ordner von Dive on Wide einmal "
+                    "„sudo sh werkzeuge/bwrap_freischalten.sh“. Ohne Sandbox fragt die "
                     "Werkbank vor jedem Befehl."))
         return T("bubblewrap über den Paketmanager installieren (Paket „bubblewrap“).")
 

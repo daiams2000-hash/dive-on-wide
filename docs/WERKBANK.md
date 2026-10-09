@@ -125,6 +125,8 @@ Zwei getrennte Fragen, wie bei Codex:
 
 Die Sandbox ist `sandbox-exec` (macOS) oder `bwrap` (Linux, Paket *bubblewrap*).
 **Gibt es keine, wird jeder Befehl einzeln gefragt** — egal, was eingestellt ist.
+Ubuntu ab 24.04 sperrt bubblewrap per AppArmor; Dive on Wide erkennt das und sagt es. Freischalten: im
+Ordner von Dive on Wide einmal `sudo sh werkzeuge/bwrap_freischalten.sh`.
 
 **Erst planen:** Der Agent darf zunächst nur lesen und legt mit `plan` einen Plan
 vor. Erst deine Freigabe gibt ihm die eingestellten Rechte.

@@ -5,6 +5,24 @@ listed with what was wrong, because that is the part worth reading.
 
 ---
 
+## 0.5.1 — fixes found the same day
+
+<!-- x: Dive on Wide 0.5.1: same-day fixes from our own CI on 9 systems (macOS, Linux, Windows × Python 3.9–3.13) — Windows bash without WSL, the Ubuntu 24.04 sandbox, Python 3.9. -->
+Right after 0.5.0 went out, the test suite ran on GitHub for the first time — 9 machines, three systems, Python 3.9
+to 3.13 — and found real bugs that no Mac and no VM had shown. All 547 tests now pass on all nine.
+
+**Fixed**
+- **Windows without WSL:** `bash` resolved to the WSL launcher in System32, which only says "no installed
+  distributions". Git Bash is now preferred; the launcher no longer counts as bash.
+- **Ubuntu 24.04:** bubblewrap was installed but blocked by AppArmor, and Dive on Wide only checked whether it
+  *existed* — every workbench command would have failed. It now checks that the sandbox really runs; if not, the
+  workbench asks before every command and says how to unlock it: `sudo sh werkzeuge/bwrap_freischalten.sh`.
+  The CI runs that very script, so the advice cannot silently go stale.
+- **Python 3.9:** task factory and distillation crashed (`sys.stdlib_module_names` exists only from 3.10), and the
+  oracle's check for files shadowing the standard library saw almost nothing. Now with a complete fallback.
+
+---
+
 ## 0.5.0 — first public release
 
 <!-- x: Your local models chat, plan and build together: a swarm of small models with fresh contexts, a workbench that edits and tests real code, your files as knowledge. Nothing leaves your machine unless you say so. -->

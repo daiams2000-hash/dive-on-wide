@@ -152,10 +152,10 @@ def wait_run(run_id, timeout=90):
         st, last = get("/api/runs/" + run_id)
         if st == 200 and last.get("status") != "running":
             return last
-        # Windows hat keine Sandbox: Dort fragt die Werkbank bei JEDEM Befehl. Das ist
+        # Ohne Sandbox (Windows, Linux ohne bubblewrap) fragt die Werkbank bei JEDEM Befehl. Das ist
         # gewollt; die Suite bestätigt genau diese Fragen wie ein Nutzer — alle anderen
         # Freigaben bleiben Sache des jeweiligen Tests.
-        if os.name == "nt" and st == 200 and "ohne Sandbox" in str(last.get("pending") or ""):
+        if _ohne_sandbox() and st == 200 and "ohne Sandbox" in str(last.get("pending") or ""):
             post("/api/runs/%s/confirm" % run_id, {"ok": True})
         time.sleep(0.25)
     raise Fail("Lauf %s wurde nicht fertig (Status: %s)"
@@ -746,10 +746,72 @@ def t_sandbox_runtimes():
     st, r = post("/api/sandbox/run", {"workspace": "testws", "runtime": "bash",
                                       "code": "echo hallo-bash"})
     eq(st, 200)
-    if shutil.which("bash"):
+    if _server_modul().laufzeit_finden("bash"):
         contains(r["stdout"], "hallo-bash", "Bash-Ausgabe")
-    else:                        # Windows ohne Git-Bash: klare Absage statt „Datei nicht gefunden“
+    else:                        # Windows ohne Git-Bash (oder nur mit dem WSL-Platzhalter): klare Absage
         contains(r["stderr"], "nicht installiert", "fehlendes bash nicht erklärt")
+
+
+@test("werkbank", "Standardbibliothek erkannt auch ohne sys.stdlib_module_names (Python 3.9)")
+def t_stdlib_ohne_310():
+    """GitHub-CI macOS/3.9, 09.10.2026: Aufgabenfabrik und Destillation stürzten mit „module 'sys' has no attribute
+    'stdlib_module_names'“ ab — das gibt es erst ab 3.10, unterstützt wird 3.9."""
+    sys.path[:0] = [ROOT, os.path.join(ROOT, "pruefstand")]
+    import orakel, fabrik
+    gespeichert = getattr(sys, "stdlib_module_names", None)
+    if gespeichert is not None:
+        del sys.stdlib_module_names
+    try:
+        for modul in (orakel, fabrik):
+            namen = modul.standardbibliothek()
+            for n in ("json", "os", "unittest", "collections", "pathlib", "sqlite3", "math"):
+                ok(n in namen, "%s: %s fehlt ohne stdlib_module_names" % (modul.__name__, n))
+            ok("requests" not in namen and "numpy" not in namen, "Fremdpaket als Standardbibliothek gezählt")
+    finally:
+        if gespeichert is not None:
+            sys.stdlib_module_names = gespeichert
+
+
+@test("sandbox", "Ein gesperrtes bubblewrap gilt nicht als Sandbox — und der Hinweis sagt, wie man es freischaltet")
+def t_bwrap_gesperrt():
+    """GitHub-CI Ubuntu 24.04, 09.10.2026: bwrap installiert, AppArmor sperrt die Namensräume („setting up uid map:
+    Permission denied“). Weil nur geprüft wurde, OB bwrap da ist, wäre jeder Werkbank-Befehl gescheitert."""
+    nur_posix("die bwrap-Attrappe ist ein Shell-Skript")
+    sys.path.insert(0, ROOT)
+    import werkbank as W
+    srv = _server_modul()
+    d = tempfile.mkdtemp(prefix="dowos-bwrap-")
+    pfad_vorher = os.environ.get("PATH", "")
+    os.environ["PATH"] = d + os.pathsep + pfad_vorher
+    try:
+        for code, erwartet in ((1, False), (0, True)):
+            with open(os.path.join(d, "bwrap"), "w") as f:
+                f.write("#!/bin/sh\necho 'bwrap: setting up uid map: Permission denied' >&2\nexit %d\n" % code)
+            os.chmod(os.path.join(d, "bwrap"), 0o755)
+            W._BWRAP_PROBE.clear()
+            eq(W.bwrap_laeuft(), erwartet, "bwrap mit Rückgabe %d" % code)
+        with open(os.path.join(d, "bwrap"), "w") as f:
+            f.write("#!/bin/sh\nexit 1\n")
+        W._BWRAP_PROBE.clear()
+        hinweis = srv.werkbank_ohne_sandbox_hinweis("Linux")
+        contains(hinweis, "AppArmor", "Der Hinweis erklärt das gesperrte bubblewrap nicht")
+        contains(hinweis, "werkzeuge/bwrap_freischalten.sh", "Der Hinweis nennt keinen Weg zum Freischalten")
+        ok(os.path.isfile(os.path.join(ROOT, "werkzeuge", "bwrap_freischalten.sh")), "Das genannte Skript fehlt")
+    finally:
+        os.environ["PATH"] = pfad_vorher
+        W._BWRAP_PROBE.clear()
+
+
+@test("sandbox", "Unter Windows zählt der WSL-Platzhalter nicht als bash")
+def t_bash_ohne_wsl_platzhalter():
+    srv = _server_modul()
+    if os.name != "nt":
+        eq(srv.laufzeit_finden("bash"), shutil.which("bash"), "Außerhalb von Windows ändert sich nichts")
+        return
+    gefunden = srv.laufzeit_finden("bash")
+    windir = os.path.normcase(os.environ.get("SystemRoot", r"C:\Windows"))
+    ok(not gefunden or not os.path.normcase(gefunden).startswith(windir),
+       "Der WSL-Starter aus System32 wurde als bash genommen: %s" % gefunden)
 
 
 @test("sandbox", "Shell-Befehl läuft im Workspace-Verzeichnis")
@@ -1321,7 +1383,20 @@ def _freigabe_ohne_sandbox(text):
     return "ohne Sandbox" in str(text)
 
 
-FREIGABE_OHNE_SANDBOX = _freigabe_ohne_sandbox if os.name == "nt" else None
+_SANDBOX_LAGE = []
+
+
+def _ohne_sandbox():
+    if not _SANDBOX_LAGE:
+        sys.path.insert(0, ROOT)
+        import werkbank as _w
+        _SANDBOX_LAGE.append(_w.sandbox_art() is None)
+    return _SANDBOX_LAGE[0]
+
+
+# Nicht nur Windows: Auch ein Linux ohne bubblewrap hat keine Sandbox (GitHub-CI Ubuntu, 09.10.2026 — 15 Tests
+# warteten dort auf eine Freigabe, die niemand gab).
+FREIGABE_OHNE_SANDBOX = _freigabe_ohne_sandbox if _ohne_sandbox() else None
 
 
 def braucht_sandbox():
@@ -2821,6 +2896,12 @@ def _hausmodell_pruefstand():
 def t_dowbench_selbstpruefung():
     braucht_sandbox()
     sys.path[:0] = [os.path.join(ROOT, "pruefstand"), os.path.join(ROOT, "pruefstand", "dowbench")]
+    # Köder-.env und Logdateien sind absichtlich nicht im Repo (.gitignore). In einem frischen Klon — so lief
+    # GitHubs CI am 09.10.2026 rot — fehlen sie; der Bauplan erzeugt sie reproduzierbar, versionierte Dateien
+    # ändert er nicht.
+    if not os.path.exists(os.path.join(ROOT, "pruefstand", "dowbench", "aufgaben", "t1_log_ips", "repo", "access.log")):
+        subprocess.run([sys.executable, os.path.join(ROOT, "pruefstand", "dowbench", "aufgaben_bauen.py")],
+                       check=True, capture_output=True, timeout=120)
     import bank
     liste = bank.aufgaben(("terminal", "injektion", "regeln"))
     ok(len(liste) >= 14, "zu wenige Aufgaben: %d" % len(liste))
@@ -12860,7 +12941,12 @@ class H(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         self.rfile.read(int(self.headers.get("Content-Length") or 0))
         self.antwort({"choices": [{"message": {"content": "gguf-antwort"}, "finish_reason": "stop"}]})
-http.server.HTTPServer(("127.0.0.1", int(a[a.index("--port") + 1])), H).serve_forever()
+class S(http.server.HTTPServer):
+    def server_bind(self):   # ohne socket.getfqdn(): hängt auf GitHubs macOS-Runnern (CI 09.10.2026)
+        import socketserver
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = "127.0.0.1", self.server_address[1]
+S(("127.0.0.1", int(a[a.index("--port") + 1])), H).serve_forever()
 """
 
 
@@ -13448,8 +13534,8 @@ def t_cli_acp_ablehnen():
 def t_cli_verlauf_abzweigen():
     ordner = _cli_projekt()
     try:
-        # Windows: keine Sandbox, und im Test fragt niemand — dort ausdrücklich volle Rechte
-        voll = ["--stufe", "voll"] if os.name == "nt" else []
+        # Ohne Sandbox (Windows, Linux ohne bubblewrap) fragt im Test niemand — dort ausdrücklich volle Rechte
+        voll = ["--stufe", "voll"] if _ohne_sandbox() else []
         code, aus, err = _cli("--ordner", ordner, "--json", "werkbank", *voll, "halbiere(3) soll 1.5 liefern")
         eq(code, 0, err[-500:])
         lauf = json.loads(aus)["lauf"]
@@ -13810,7 +13896,12 @@ if "server" in sys.argv:       # mlx_lm server: schreibt jede Anfrage neben das 
                 self.wfile.write(b'data: {"choices": [{"delta": {"content": "Schuelerantwort"}}]}\\n\\ndata: [DONE]\\n\\n')
             else:
                 self._json({"choices": [{"message": {"content": "Schuelerantwort"}}]})
-    HTTPServer(("127.0.0.1", int(sys.argv[sys.argv.index("--port") + 1])), H).serve_forever()
+    class S(HTTPServer):
+        def server_bind(self):   # ohne socket.getfqdn(): hängt auf GitHubs macOS-Runnern (CI 09.10.2026)
+            import socketserver
+            socketserver.TCPServer.server_bind(self)
+            self.server_name, self.server_port = "127.0.0.1", self.server_address[1]
+    S(("127.0.0.1", int(sys.argv[sys.argv.index("--port") + 1])), H).serve_forever()
 cfg = json.load(open(sys.argv[sys.argv.index("-c") + 1]))
 art = os.environ.get("FAKE_TRAINER", "")
 if art == "haengen":

@@ -84,7 +84,7 @@ ENV = load_env()
 
 # Die Version setzt werkzeuge/freigeben.sh (ersetzt diese Zeichenkette überall).
 # Mit Bindestrich (1.0.0-rc.1) ist es eine Vorab-Version für Tester, ohne eine stabile.
-DOWOS_VERSION = "0.5.0"
+DOWOS_VERSION = "0.5.1"
 
 
 def dowos_kanal(version=None):
@@ -4864,6 +4864,28 @@ def run_in_workspace(workspace, command, timeout=60, use_docker=None):
     except Exception as e:
         return -1, "", "Ausführung fehlgeschlagen: %s" % e
 
+def laufzeit_finden(name):
+    """Pfad zu einem Interpreter — unter Windows ohne den WSL-Platzhalter.
+
+    09.10.2026, GitHub-CI (Windows): `bash` fand C:\\Windows\\System32\\bash.exe. Das ist nur der Starter für
+    WSL; ohne installierte Linux-Distribution antwortet er mit „Windows Subsystem for Linux has no installed
+    distributions“ statt das Skript auszuführen. Dasselbe hätte jeder Windows-Nutzer ohne WSL gesehen. Git Bash
+    wird bevorzugt; ist nur der Platzhalter da, gilt bash als nicht installiert."""
+    if os.name != "nt" or name != "bash":
+        return shutil.which(name)
+    for basis in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramW6432", ""),
+                  os.environ.get("LOCALAPPDATA", "") and os.path.join(os.environ["LOCALAPPDATA"], "Programs")):
+        if basis:
+            kandidat = os.path.join(basis, "Git", "bin", "bash.exe")
+            if os.path.isfile(kandidat):
+                return kandidat
+    gefunden = shutil.which("bash")
+    windir = os.path.normcase(os.environ.get("SystemRoot", r"C:\Windows"))
+    if gefunden and os.path.normcase(gefunden).startswith(windir):
+        return None
+    return gefunden
+
+
 def run_code(workspace, code, runtime="python", filename=None, timeout=60):
     """Schreibt Code in den Workspace und führt ihn aus."""
     rt = RUNTIMES.get(runtime, RUNTIMES["python"])
@@ -4876,7 +4898,9 @@ def run_code(workspace, code, runtime="python", filename=None, timeout=60):
         interpreter = "python3" if docker else ws_python(workspace)
     else:
         interpreter = rt["cmd"][0]
-        if not docker and not shutil.which(interpreter):
+        if not docker:
+            interpreter = laufzeit_finden(interpreter) or interpreter
+        if not docker and not laufzeit_finden(rt["cmd"][0]):
             return {"exit_code": -1, "stdout": "", "file": fname,
                     "stderr": "„%s“ ist auf diesem Rechner nicht installiert — %s-Code lässt sich hier nicht ausführen."
                               % (interpreter, rt["label"])}
@@ -5041,6 +5065,10 @@ _werkbank_aktiv = {}          # Projektordner -> run_id, solange ein Lauf dort a
 _werkbank_start = {}          # run_id -> (Projektordner, Checkpunkt vor dem Lauf) — für den Live-Diff
 _werkbank_lock = threading.Lock()
 
+# Wie man bubblewrap unter Ubuntu 24.04 freischaltet — die GitHub-CI führt genau dieses Skript aus.
+BWRAP_FREISCHALTEN = "im Ordner von Dive on Wide einmal „sudo sh werkzeuge/bwrap_freischalten.sh“, dann Dive on Wide neu starten."
+
+
 def werkbank_ohne_sandbox_hinweis(system=None):
     """Was fehlt und was hilft — für DIESES System, nicht für ein anderes."""
     system = system or platform.system()
@@ -5049,6 +5077,10 @@ def werkbank_ohne_sandbox_hinweis(system=None):
                 "jeden Befehl einzeln freigeben. Mehr Schutz: Dive on Wide in WSL2 betreiben "
                 "(docs/VM_BETRIEB.md).")
     if system == "Linux":
+        if shutil.which("bwrap"):
+            return ("bubblewrap ist installiert, darf aber keine Namensräume anlegen (Ubuntu ab 24.04 sperrt das per "
+                    "AppArmor). Freischalten: " + BWRAP_FREISCHALTEN + " Bis dahin musst du jeden Befehl des "
+                    "Agenten einzeln freigeben.")
         return ("Auf diesem Rechner gibt es keine Sandbox (Paket „bubblewrap“ installieren, z. B. "
                 "sudo apt install bubblewrap). Bis dahin musst du jeden Befehl des Agenten einzeln freigeben.")
     return ("Auf diesem Rechner gibt es keine Sandbox. Deshalb musst du jeden Befehl des Agenten "
@@ -8943,7 +8975,7 @@ class Handler(BaseHTTPRequestHandler):
     # bisher unbegrenzt fest (Fuzz-Test 27.09.2026: Content-Length 1000, Rumpf
     # 2 Byte). Mit Frist endet jedes blockierende Lesen oder Schreiben nach 60 s.
     timeout = 60
-    server_version = "DowOS/Alpha-0.5.0"
+    server_version = "DowOS/Alpha-0.5.1"
 
     # --- Hilfsfunktionen -----------------------------------------------------
 
@@ -11297,7 +11329,7 @@ def main():
     de = plattform.konsole_deutsch()
     zeilen = [
         " ·",
-        "  °    Dive on Wide — Alpha 0.5.0",
+        "  °    Dive on Wide — Alpha 0.5.1",
         " °     " + ("lokaler KI-Arbeitsplatz" if de else "local AI workspace"),
         "O",
     ]

@@ -261,12 +261,38 @@ def json_fehler(text):
 # ----------------------------------------------------------------- Sandbox ---
 
 def sandbox_art():
-    """Welche Sandbox trägt auf diesem Rechner? None, wenn keine."""
+    """Welche Sandbox trägt auf diesem Rechner? None, wenn keine.
+
+    DOWOS_OHNE_SANDBOX=1 tut so, als gäbe es keine — zum Prüfen des Wegs, den ein Linux ohne bubblewrap geht
+    (GitHub-CI 09.10.2026). Sicher: Ohne Sandbox fragt die Werkbank vor jedem Befehl."""
+    if os.environ.get("DOWOS_OHNE_SANDBOX") == "1":
+        return None
     if sys.platform == "darwin" and shutil.which("sandbox-exec"):
         return "sandbox-exec"
-    if sys.platform.startswith("linux") and shutil.which("bwrap"):
+    if sys.platform.startswith("linux") and shutil.which("bwrap") and bwrap_laeuft():
         return "bwrap"
     return None
+
+
+_BWRAP_PROBE = {}
+
+
+def bwrap_laeuft():
+    """Vorhanden heißt nicht lauffähig. Ubuntu ab 24.04 sperrt unprivilegierte Namensräume per AppArmor:
+    bwrap ist da, scheitert aber mit „setting up uid map: Permission denied“ (GitHub-CI 09.10.2026). Bis dahin
+    galt bwrap trotzdem als Sandbox — und JEDER Befehl der Werkbank scheiterte. Einmal je Pfad prüfen, mit den
+    Schaltern, die der Einsatz braucht."""
+    pfad = shutil.which("bwrap")
+    if not pfad:
+        return False
+    if pfad not in _BWRAP_PROBE:
+        try:
+            r = subprocess.run([pfad, "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net",
+                                "--die-with-parent", "true"], capture_output=True, timeout=15)
+            _BWRAP_PROBE[pfad] = (r.returncode == 0, (r.stderr or b"").decode("utf-8", "replace").strip()[:200])
+        except Exception as e:
+            _BWRAP_PROBE[pfad] = (False, str(e)[:200])
+    return _BWRAP_PROBE[pfad][0]
 
 
 # Orte mit Geheimnissen, die Befehle des Agenten nicht LESEN duerfen.

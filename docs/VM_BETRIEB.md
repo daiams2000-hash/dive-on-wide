@@ -29,9 +29,10 @@ limactl shell dowos
 In der VM:
 
 ```bash
-tar -xzf Dive on Wide-*-Linux.tar.gz && cd Dive on Wide-*-Linux
+tar -xzf DiveOnWide-*-Linux.tar.gz && cd DiveOnWide-*-Linux
 python3 install.py --pruefen          # zeigt, was fehlt
 sudo sh -c 'apt-get update -q && apt-get install -y bubblewrap'   # die Sandbox
+sudo sh werkzeuge/bwrap_freischalten.sh                          # nur Ubuntu ab 24.04 (AppArmor)
 ./dowos-starten
 ```
 
