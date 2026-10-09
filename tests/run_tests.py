@@ -152,10 +152,10 @@ def wait_run(run_id, timeout=90):
         st, last = get("/api/runs/" + run_id)
         if st == 200 and last.get("status") != "running":
             return last
-        # Windows hat keine Sandbox: Dort fragt die Werkbank bei JEDEM Befehl. Das ist
+        # Ohne Sandbox (Windows, Linux ohne bubblewrap) fragt die Werkbank bei JEDEM Befehl. Das ist
         # gewollt; die Suite bestätigt genau diese Fragen wie ein Nutzer — alle anderen
         # Freigaben bleiben Sache des jeweiligen Tests.
-        if os.name == "nt" and st == 200 and "ohne Sandbox" in str(last.get("pending") or ""):
+        if _ohne_sandbox() and st == 200 and "ohne Sandbox" in str(last.get("pending") or ""):
             post("/api/runs/%s/confirm" % run_id, {"ok": True})
         time.sleep(0.25)
     raise Fail("Lauf %s wurde nicht fertig (Status: %s)"
@@ -746,10 +746,42 @@ def t_sandbox_runtimes():
     st, r = post("/api/sandbox/run", {"workspace": "testws", "runtime": "bash",
                                       "code": "echo hallo-bash"})
     eq(st, 200)
-    if shutil.which("bash"):
+    if _server_modul().laufzeit_finden("bash"):
         contains(r["stdout"], "hallo-bash", "Bash-Ausgabe")
-    else:                        # Windows ohne Git-Bash: klare Absage statt „Datei nicht gefunden“
+    else:                        # Windows ohne Git-Bash (oder nur mit dem WSL-Platzhalter): klare Absage
         contains(r["stderr"], "nicht installiert", "fehlendes bash nicht erklärt")
+
+
+@test("werkbank", "Standardbibliothek erkannt auch ohne sys.stdlib_module_names (Python 3.9)")
+def t_stdlib_ohne_310():
+    """GitHub-CI macOS/3.9, 09.10.2026: Aufgabenfabrik und Destillation stürzten mit „module 'sys' has no attribute
+    'stdlib_module_names'“ ab — das gibt es erst ab 3.10, unterstützt wird 3.9."""
+    sys.path[:0] = [ROOT, os.path.join(ROOT, "pruefstand")]
+    import orakel, fabrik
+    gespeichert = getattr(sys, "stdlib_module_names", None)
+    if gespeichert is not None:
+        del sys.stdlib_module_names
+    try:
+        for modul in (orakel, fabrik):
+            namen = modul.standardbibliothek()
+            for n in ("json", "os", "unittest", "collections", "pathlib", "sqlite3", "math"):
+                ok(n in namen, "%s: %s fehlt ohne stdlib_module_names" % (modul.__name__, n))
+            ok("requests" not in namen and "numpy" not in namen, "Fremdpaket als Standardbibliothek gezählt")
+    finally:
+        if gespeichert is not None:
+            sys.stdlib_module_names = gespeichert
+
+
+@test("sandbox", "Unter Windows zählt der WSL-Platzhalter nicht als bash")
+def t_bash_ohne_wsl_platzhalter():
+    srv = _server_modul()
+    if os.name != "nt":
+        eq(srv.laufzeit_finden("bash"), shutil.which("bash"), "Außerhalb von Windows ändert sich nichts")
+        return
+    gefunden = srv.laufzeit_finden("bash")
+    windir = os.path.normcase(os.environ.get("SystemRoot", r"C:\Windows"))
+    ok(not gefunden or not os.path.normcase(gefunden).startswith(windir),
+       "Der WSL-Starter aus System32 wurde als bash genommen: %s" % gefunden)
 
 
 @test("sandbox", "Shell-Befehl läuft im Workspace-Verzeichnis")
@@ -1321,7 +1353,20 @@ def _freigabe_ohne_sandbox(text):
     return "ohne Sandbox" in str(text)
 
 
-FREIGABE_OHNE_SANDBOX = _freigabe_ohne_sandbox if os.name == "nt" else None
+_SANDBOX_LAGE = []
+
+
+def _ohne_sandbox():
+    if not _SANDBOX_LAGE:
+        sys.path.insert(0, ROOT)
+        import werkbank as _w
+        _SANDBOX_LAGE.append(_w.sandbox_art() is None)
+    return _SANDBOX_LAGE[0]
+
+
+# Nicht nur Windows: Auch ein Linux ohne bubblewrap hat keine Sandbox (GitHub-CI Ubuntu, 09.10.2026 — 15 Tests
+# warteten dort auf eine Freigabe, die niemand gab).
+FREIGABE_OHNE_SANDBOX = _freigabe_ohne_sandbox if _ohne_sandbox() else None
 
 
 def braucht_sandbox():
@@ -2821,6 +2866,12 @@ def _hausmodell_pruefstand():
 def t_dowbench_selbstpruefung():
     braucht_sandbox()
     sys.path[:0] = [os.path.join(ROOT, "pruefstand"), os.path.join(ROOT, "pruefstand", "dowbench")]
+    # Köder-.env und Logdateien sind absichtlich nicht im Repo (.gitignore). In einem frischen Klon — so lief
+    # GitHubs CI am 09.10.2026 rot — fehlen sie; der Bauplan erzeugt sie reproduzierbar, versionierte Dateien
+    # ändert er nicht.
+    if not os.path.exists(os.path.join(ROOT, "pruefstand", "dowbench", "aufgaben", "t1_log_ips", "repo", "access.log")):
+        subprocess.run([sys.executable, os.path.join(ROOT, "pruefstand", "dowbench", "aufgaben_bauen.py")],
+                       check=True, capture_output=True, timeout=120)
     import bank
     liste = bank.aufgaben(("terminal", "injektion", "regeln"))
     ok(len(liste) >= 14, "zu wenige Aufgaben: %d" % len(liste))
@@ -13448,8 +13499,8 @@ def t_cli_acp_ablehnen():
 def t_cli_verlauf_abzweigen():
     ordner = _cli_projekt()
     try:
-        # Windows: keine Sandbox, und im Test fragt niemand — dort ausdrücklich volle Rechte
-        voll = ["--stufe", "voll"] if os.name == "nt" else []
+        # Ohne Sandbox (Windows, Linux ohne bubblewrap) fragt im Test niemand — dort ausdrücklich volle Rechte
+        voll = ["--stufe", "voll"] if _ohne_sandbox() else []
         code, aus, err = _cli("--ordner", ordner, "--json", "werkbank", *voll, "halbiere(3) soll 1.5 liefern")
         eq(code, 0, err[-500:])
         lauf = json.loads(aus)["lauf"]

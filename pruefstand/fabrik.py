@@ -118,6 +118,21 @@ Antworte GENAU in diesem Format, ohne Text davor oder danach:
 BLOCK_RE = re.compile(r"^===\s*(ISSUE|DATEI\s+(\S+)|ENDE)\s*===\s*$", re.M)
 
 
+def standardbibliothek():
+    """Namen der Standardbibliothek. `sys.stdlib_module_names` gibt es erst ab Python 3.10 — unter 3.9 (das wir
+    unterstützen) stürzte die Aufgabenfabrik ab, und die Überschatten-Prüfung des Orakels sah fast nichts
+    (GitHub-CI macOS/3.9, 09.10.2026). Dort wird die Liste aus dem Ordner der Standardbibliothek gelesen."""
+    namen = getattr(sys, "stdlib_module_names", None)
+    if namen:
+        return frozenset(namen)
+    import pkgutil
+    import sysconfig
+    ordner = [sysconfig.get_paths()["stdlib"]]
+    ordner.append(os.path.join(ordner[0], "lib-dynload"))
+    gefunden = {m.name for m in pkgutil.iter_modules(ordner)}
+    return frozenset(gefunden | set(sys.builtin_module_names) | {"__future__"})
+
+
 def zerlegen(text):
     """(issue, {pfad: inhalt}) aus der Modellantwort. Wirft ValueError mit Grund."""
     text = (text or "").replace("\r\n", "\n")
@@ -206,7 +221,7 @@ def pruefen_statisch(issue, dateien, vergleich):
             elif isinstance(knoten, ast.ImportFrom) and knoten.level == 0 and knoten.module:
                 namen = [knoten.module.split(".")[0]]
             for n in namen:
-                if n not in sys.stdlib_module_names and n not in eigene:
+                if n not in standardbibliothek() and n not in eigene:
                     return "Import außerhalb der Standardbibliothek (%s)" % n
             # Feste Daten wie date(2024, 1, 1) sind in Ordnung — Zufall, „jetzt“ und Netz nicht.
             wackelig = (isinstance(knoten, ast.Name) and knoten.id == "random") or \

@@ -261,7 +261,12 @@ def json_fehler(text):
 # ----------------------------------------------------------------- Sandbox ---
 
 def sandbox_art():
-    """Welche Sandbox trägt auf diesem Rechner? None, wenn keine."""
+    """Welche Sandbox trägt auf diesem Rechner? None, wenn keine.
+
+    DOWOS_OHNE_SANDBOX=1 tut so, als gäbe es keine — zum Prüfen des Wegs, den ein Linux ohne bubblewrap geht
+    (GitHub-CI 09.10.2026). Sicher: Ohne Sandbox fragt die Werkbank vor jedem Befehl."""
+    if os.environ.get("DOWOS_OHNE_SANDBOX") == "1":
+        return None
     if sys.platform == "darwin" and shutil.which("sandbox-exec"):
         return "sandbox-exec"
     if sys.platform.startswith("linux") and shutil.which("bwrap"):

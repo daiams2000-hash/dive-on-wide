@@ -13,7 +13,7 @@ runs.** Every capability that touches your machine, your network or your data
 ships switched **off**, and every diagnosis says what is actually missing rather
 than failing quietly.
 
-[![tests](https://img.shields.io/badge/tests-544%20passing-brightgreen)](tests/run_tests.py)
+[![tests](https://img.shields.io/badge/tests-546%20passing-brightgreen)](tests/run_tests.py)
 [![python](https://img.shields.io/badge/python-3.9%2B%20(stdlib%20only)-blue)](https://www.python.org/)
 [![dependencies](https://img.shields.io/badge/dependencies-0-blue)](server.py)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)

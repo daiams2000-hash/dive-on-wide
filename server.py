@@ -4864,6 +4864,28 @@ def run_in_workspace(workspace, command, timeout=60, use_docker=None):
     except Exception as e:
         return -1, "", "Ausführung fehlgeschlagen: %s" % e
 
+def laufzeit_finden(name):
+    """Pfad zu einem Interpreter — unter Windows ohne den WSL-Platzhalter.
+
+    09.10.2026, GitHub-CI (Windows): `bash` fand C:\\Windows\\System32\\bash.exe. Das ist nur der Starter für
+    WSL; ohne installierte Linux-Distribution antwortet er mit „Windows Subsystem for Linux has no installed
+    distributions“ statt das Skript auszuführen. Dasselbe hätte jeder Windows-Nutzer ohne WSL gesehen. Git Bash
+    wird bevorzugt; ist nur der Platzhalter da, gilt bash als nicht installiert."""
+    if os.name != "nt" or name != "bash":
+        return shutil.which(name)
+    for basis in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramW6432", ""),
+                  os.environ.get("LOCALAPPDATA", "") and os.path.join(os.environ["LOCALAPPDATA"], "Programs")):
+        if basis:
+            kandidat = os.path.join(basis, "Git", "bin", "bash.exe")
+            if os.path.isfile(kandidat):
+                return kandidat
+    gefunden = shutil.which("bash")
+    windir = os.path.normcase(os.environ.get("SystemRoot", r"C:\Windows"))
+    if gefunden and os.path.normcase(gefunden).startswith(windir):
+        return None
+    return gefunden
+
+
 def run_code(workspace, code, runtime="python", filename=None, timeout=60):
     """Schreibt Code in den Workspace und führt ihn aus."""
     rt = RUNTIMES.get(runtime, RUNTIMES["python"])
@@ -4876,7 +4898,9 @@ def run_code(workspace, code, runtime="python", filename=None, timeout=60):
         interpreter = "python3" if docker else ws_python(workspace)
     else:
         interpreter = rt["cmd"][0]
-        if not docker and not shutil.which(interpreter):
+        if not docker:
+            interpreter = laufzeit_finden(interpreter) or interpreter
+        if not docker and not laufzeit_finden(rt["cmd"][0]):
             return {"exit_code": -1, "stdout": "", "file": fname,
                     "stderr": "„%s“ ist auf diesem Rechner nicht installiert — %s-Code lässt sich hier nicht ausführen."
                               % (interpreter, rt["label"])}

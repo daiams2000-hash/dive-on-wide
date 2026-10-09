@@ -2,7 +2,7 @@ name: tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, "ci-*"]
   pull_request:
 
 jobs:
@@ -20,6 +20,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      # Linux both ways: with bubblewrap (the sandbox a set-up Linux has) and, on 3.9,
+      # without — then the workbench asks before every command, and that path is tested too.
+      - name: Install the Linux sandbox (bubblewrap)
+        if: matrix.os == 'ubuntu-latest' && matrix.python != '3.9'
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          # Ubuntu 24.04 limits user namespaces through AppArmor; the package's profile allows bwrap.
+          sudo systemctl reload apparmor || true
+          bwrap --ro-bind / / --dev /dev --proc /proc true && echo "bwrap works"
       - name: Run the suite
         run: python3 tests/run_tests.py
       - name: Prove the package carries no secrets

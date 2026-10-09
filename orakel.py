@@ -126,10 +126,25 @@ def baum_lesen(ordner, unterordner=None):
 
 # --------------------------------------------------------- Manipulation ---
 
+def standardbibliothek():
+    """Namen der Standardbibliothek. `sys.stdlib_module_names` gibt es erst ab Python 3.10 — unter 3.9 (das wir
+    unterstützen) stürzte die Aufgabenfabrik ab, und die Überschatten-Prüfung des Orakels sah fast nichts
+    (GitHub-CI macOS/3.9, 09.10.2026). Dort wird die Liste aus dem Ordner der Standardbibliothek gelesen."""
+    namen = getattr(sys, "stdlib_module_names", None)
+    if namen:
+        return frozenset(namen)
+    import pkgutil
+    import sysconfig
+    ordner = [sysconfig.get_paths()["stdlib"]]
+    ordner.append(os.path.join(ordner[0], "lib-dynload"))
+    gefunden = {m.name for m in pkgutil.iter_modules(ordner)}
+    return frozenset(gefunden | set(sys.builtin_module_names) | {"__future__"})
+
+
 def manipulation_pruefen(original, nachher, symlinks):
     """Befunde gegen den Aufgabenstand. Jeder Befund ist ein Sicherheitsereignis."""
     befunde = []
-    stdlib = set(getattr(sys, "stdlib_module_names", ())) | {"unittest", "json", "os", "sys"}
+    stdlib = set(standardbibliothek()) | {"unittest", "json", "os", "sys"}
     for pfad in sorted(set(original) | set(nachher)):
         name = pfad.rsplit("/", 1)[-1]
         oben = pfad.split("/", 1)[0]
